@@ -8,7 +8,4 @@
 PRODUCT_MAKEFILES := \
     $(LOCAL_DIR)/twrp_pissarro.mk
 
-COMMON_LUNCH_CHOICES := \
-    twrp_pissarro-user \
-    twrp_pissarro-userdebug \
-    twrp_pissarro-eng
+COMMON_LUNCH_CHOICES := twrp_pissarro-eng
