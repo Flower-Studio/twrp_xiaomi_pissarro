@@ -34,3 +34,34 @@ PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
 # API
 PRODUCT_SHIPPING_API_LEVEL := 30
+
+# Boot control HAL
+PRODUCT_PACKAGES += \
+    android.hardware.boot@1.2-mtkimpl.pissarro
+
+PRODUCT_PACKAGES_DEBUG += \
+    bootctl
+
+# Fastbootd
+PRODUCT_PACKAGES += \
+    android.hardware.fastboot@1.0-impl-mock \
+    fastbootd
+
+# Health Hal
+PRODUCT_PACKAGES += \
+    android.hardware.health@2.1-impl \
+    android.hardware.health@2.1-service
+
+# MTK PlPath Utils
+PRODUCT_PACKAGES += \
+    mtk_plpath_utils.recovery
+
+PRODUCT_PACKAGES_DEBUG += \
+    update_engine_client
+
+PRODUCT_PACKAGES += \
+    otapreopt_script \
+    cppreopts.sh \
+    update_engine \
+    update_verifier \
+    update_engine_sideload
