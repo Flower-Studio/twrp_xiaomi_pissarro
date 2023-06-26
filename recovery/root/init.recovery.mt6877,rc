@@ -1,9 +1,16 @@
+# Beanpod
 import /init.microtrust.rc
 
 on init
     export LD_LIBRARY_PATH /system/lib64:/vendor/lib64:/vendor/lib64/hw:/system/lib64/hw
 
+on fs
+    install_keyring
+
 on post-fs
+    start boot-hal-1-1
+    start mtk.plpath.utils.link
+
     # Support A/B feature for EMMC and UFS boot region
     wait /dev/block/mmcblk0boot0 2
     symlink /dev/block/sda /dev/block/mmcblk0boot0
@@ -46,7 +53,7 @@ service gatekeeper-1-0 /system/bin/android.hardware.gatekeeper@1.0-service
     disabled
     seclabel u:r:recovery:s0
 
-service keymaster-4-0 /system/bin/android.hardware.keymaster@4.1-service.beanpod
+service keymaster-4-0 /system/bin/android.hardware.keymaster@4.0-service.beanpod
     interface android.hardware.keymaster@4.0::IKeymasterDevice default
     user root
     group root drmrpc
@@ -54,26 +61,82 @@ service keymaster-4-0 /system/bin/android.hardware.keymaster@4.1-service.beanpod
     oneshot
     seclabel u:r:recovery:s0
 
-on property:vendor.sys.listener.registered=true
-    start gatekeeper-1-0
-    start keymaster-4-0
-    start gatekeeper-1-0
-   
+service keymaster-4-0-mitee /system/bin/android.hardware.keymaster@4.0-service.mitee
+    user root
+    group root drmrpc
+    oneshot
+    disabled
+    seclabel u:r:recovery:s0
+
+on property:hwservicemanager.ready=true && property:ro.boot.tee_type=1
+    stop keymaster-4-0-beanpod
+    start keymaster-4-0-mitee
+
+on property:hwservicemanager.ready=true && property:ro.boot.tee_type=2
+    stop keymaster-4-0-mitee
+    start keymaster-4-0-beanpod
+
 on property:ro.crypto.state=unsupported
     stop teei_daemon
-    stop keymaster-4-0
+    stop keymaster-4-0-beanpod
+    stop keymaster-4-0-mitee
     stop gatekeeper-1-0
-    
+
 on property:ro.crypto.state=unencrypted
     stop teei_daemon
-    stop keymaster-4-0
+    stop keymaster-4-0-beanpod
+    stop keymaster-4-0-mitee
     stop gatekeeper-1-0
-        
-on property:twrp.all.users.decrypted=true
+
+on property:twrp.decrypt.done=true
     stop teei_daemon
-    stop keymaster-4-0
+    stop keymaster-4-0-beanpod
+    stop keymaster-4-0-mitee
     stop gatekeeper-1-0
-   
+
+# Mitee
+service miteelog /system/bin/miteelog
+    class core
+    user root
+    group root
+    disabled
+    oneshot
+    seclabel u:r:recovery:s0
+
+on post-fs-data && property:ro.boot.tee_type=1
+    mkdir /data/vendor/mitee
+    chmod 0755 /data/vendor/mitee
+    chown system system /data/vendor/mitee
+    mkdir /data/vendor/thh
+    chmod 0755 /data/vendor/thh
+    chown system system /data/vendor/thh
+    write /proc/bootprof "init miteelog"
+    start miteelog
+
+# For MTK DRM integration:
+service tee-supplicant /system/bin/tee-supplicant
+    class core
+    user root
+    group root
+    disabled
+    oneshot
+    seclabel u:r:recovery:s0
+
+
+on fs && property:ro.boot.tee_type=1
+    write /proc/bootprof "init tee-supplicant"
+   # set SELinux security contexts on upgrade or policy update
+    restorecon_recursive /mnt/vendor/persist
+    chmod 0660 /dev/tee0
+    chmod 0660 /dev/teepriv0
+    chown system keystore /dev/tee0
+    chmod 0660 /dev/rpmb0
+    chown system system /dev/rpmb0
+    enable vendor.keymaster-4-0-mitee
+    start tee-supplicant
+    mkdir /mnt/vendor/persist/data 0755 system system
+    setprop vendor.teefs_state ready
+    setprop ro.hardware.gatekeeper mitee
+
 on boot
-    start boot-hal-1-2
     start health-hal-2-1

@@ -14,7 +14,7 @@ ALLOW_MISSING_DEPENDENCIES := true
 TARGET_ARCH := arm64
 TARGET_ARCH_VARIANT := armv8-2a
 TARGET_CPU_ABI := arm64-v8a
-TARGET_CPU_ABI2 := 
+TARGET_CPU_ABI2 :=
 TARGET_CPU_VARIANT_RUNTIME := cortex-a55
 
 TARGET_2ND_ARCH := arm
@@ -68,7 +68,7 @@ TARGET_NO_RECOVERY := true
 BOARD_USES_METADATA_PARTITION := true
 
 # Partitions size
-BOARD_BOOTIMAGE_PARTITION_SIZE := 67108864
+BOARD_BOOTIMAGE_PARTITION_SIZE := 134217728
 
 # Dynamic Partitions
 BOARD_SUPER_PARTITION_SIZE := 9126805504
@@ -113,21 +113,23 @@ PLATFORM_VERSION := 16.1.0
 # TWRP Configuration
 TW_THEME := portrait_hdpi
 TW_EXTRA_LANGUAGES := true
-TW_SCREEN_BLANK_ON_BOOT := true
-TW_INPUT_BLACKLIST := "hbtp_vm"
-TW_USE_TOOLBOX := true
+TW_INCLUDE_NTFS_3G := true
 TW_INCLUDE_REPACKTOOLS := true
+TW_INCLUDE_RESETPROP := true
+TWRP_INCLUDE_LOGCAT := true
+TARGET_USES_LOGD := true
+TARGET_USES_MKE2FS := true
+TW_EXCLUDE_APEX := true
+TW_NO_HAPTICS := true
+RECOVERY_SDCARD_ON_DATA := true
 
-# Additional binaries & libraries needed for recovery
-TARGET_RECOVERY_DEVICE_MODULES += \
-    libkeymaster4 \
-    libkeymaster41 \
-    libpuresoftkeymasterdevice
+# Device config
+TW_BRIGHTNESS_PATH := "/sys/class/leds/lcd-backlight/brightness"
+TW_NO_SCREEN_BLANK := true
+TW_INPUT_BLACKLIST := "hbtp_vm"
+TW_MAX_BRIGHTNESS := 2047
+TW_DEFAULT_BRIGHTNESS := 1200
 
-# Decryption
-TW_INCLUDE_CRYPTO := true
-TW_INCLUDE_FBE_METADATA_DECRYPT := true
-TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES += \
-    $(TARGET_OUT_SHARED_LIBRARIES)/libkeymaster4.so \
-    $(TARGET_OUT_SHARED_LIBRARIES)/libkeymaster41.so \
-    $(TARGET_OUT_SHARED_LIBRARIES)/libpuresoftkeymasterdevice.so
+TW_EXCLUDE_DEFAULT_USB_INIT := true
+
+TARGET_USE_CUSTOM_LUN_FILE_PATH := /config/usb_gadget/g1/functions/mass_storage.0/lun.%d/file
